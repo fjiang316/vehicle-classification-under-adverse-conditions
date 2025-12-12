@@ -1,0 +1,2 @@
+# Execution Instruction Guide for Blurry Distortion Experiment
+All files in this folders are related to blurry condition (distortion) related experiment in this project. Please follow the guideline below if you want to run the code.
