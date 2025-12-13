@@ -7,14 +7,14 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 
 ############################################
-# 路径（根据你提供的信息）
+# Paths (based on your provided information)
 ############################################
-TEST_DIR = r"D:\ece253\Vehicle-Type-Detection\dataset\train"
+TEST_DIR = r"D:\ece253\Vehicle-Type-Detection\dataset\raw_data"
 DEHAZED_DIR = r"D:\ece253\Vehicle-Type-Detection\test_dehazed"
 os.makedirs(DEHAZED_DIR, exist_ok=True)
 
 ############################################
-# ---------- 去雾算法：DCP ----------
+# ---------- Dehazing Algorithm: DCP ----------
 ############################################
 def get_dark_channel(I, window_size=15):
     min_channel = np.min(I, axis=2)
@@ -53,7 +53,7 @@ def dehaze_dcp(img):
     return J
 
 ############################################
-# ---------- 去雾算法：MSRcr ----------
+# ---------- Dehazing Algorithm: MSRcr ----------
 ############################################
 def msr(img, sigma_list=[15, 80, 250], alpha=125, beta=46, gain=2.0, gamma=1.0):
     img = img.astype(np.float32) + 1.0
@@ -81,11 +81,11 @@ def msr(img, sigma_list=[15, 80, 250], alpha=125, beta=46, gain=2.0, gamma=1.0):
     return msrcr
 
 ############################################
-# ---------- 去雾处理并保存 ----------
+# ---------- Apply Dehazing and Save ----------
 ############################################
 def process_dataset(mode="dcp"):
     """mode: 'dcp' or 'msr'"""
-    print(f"\n🔧 正在执行去雾算法: {mode.upper()} ...")
+    print(f"\n🔧 Running dehazing algorithm: {mode.upper()} ...")
     for cls in os.listdir(TEST_DIR):
         src_dir = os.path.join(TEST_DIR, cls)
         if not os.path.isdir(src_dir):
@@ -107,12 +107,12 @@ def process_dataset(mode="dcp"):
 
             cv2.imwrite(os.path.join(dst_dir, fname), out)
 
-    print("✅ 去雾图像已全部生成！\n")
+    print("✅ All dehazed images have been generated!\n")
 
 ############################################
-# ---------- 模型加载 ----------
+# ---------- Model Loading ----------
 ############################################
-# 这是模型训练时的 17 类（顺序必须和模型训练时一致）
+# 17 classes used during model training (order must match training)
 MODEL_CLASSES = [
     'Ambulance', 'Barge', 'Bicycle', 'Boat', 'Bus', 'Car',
     'Cart', 'Caterpillar', 'Helicopter', 'Limousine',
@@ -120,51 +120,52 @@ MODEL_CLASSES = [
     'Truck', 'Van'
 ]
 
-# 你关心的 7 类（目标类，文件夹名应与这些一致或为小写版本）
+# Target 7 classes of interest (folder names should match or be lowercase versions)
 TARGET_7 = ['bicycle', 'boat', 'bus', 'car', 'helicopter', 'motorcycle', 'truck']
 
-# 把 MODEL_CLASSES 映射为小写，方便比较
+# Convert MODEL_CLASSES to lowercase for easier comparison
 MODEL_CLASSES_LOWER = [c.lower() for c in MODEL_CLASSES]
 
-# 加载模型（你自己的路径）
+# Load models (your own paths)
 model1 = load_model(r"D:/ece253/Vehicle-Type-Detection/saved_models/mobilenet2.h5")
 model2 = load_model(r"D:/ece253/Vehicle-Type-Detection/saved_models/InceptionV3.h5")
 models = [model1, model2]
 
 ############################################
-# ---------- 分类预测（含 17->7 映射）----------
+# ---------- Classification Prediction (17 → 7 Mapping) ----------
 ############################################
 def predict_image(models, img):
     """
-    接收模型（输出应为 17 维），返回映射后的目标 7 类标签或 'unknown'，以及 confidence。
+    Takes models (with 17-class output) and returns the mapped
+    target 7-class label or 'unknown', along with confidence.
     """
     img = cv2.resize(img, (224, 224))
     arr = img.astype("float32") / 255.0
     arr = np.expand_dims(arr, axis=0)
 
-    # ensemble: 对所有模型输出求和
+    # Ensemble: sum outputs from all models
     preds = sum(m.predict(arr)[0] for m in models)  # shape (17,)
     cls_id = int(np.argmax(preds))
     confidence = float(preds[cls_id] / preds.sum())
 
-    # 原始模型类别名（按 MODEL_CLASSES 顺序）
-    model_pred_class = MODEL_CLASSES_LOWER[cls_id]  # e.g. 'bicycle' or 'ambulance'
+    # Original model class name (based on MODEL_CLASSES order)
+    model_pred_class = MODEL_CLASSES_LOWER[cls_id]
 
-    # 如果该模型预测属于你关心的 7 类之一，保留映射；否则标记为 unknown
+    # Keep prediction if it belongs to the target 7 classes; otherwise mark as unknown
     if model_pred_class in TARGET_7:
         return model_pred_class, confidence
     else:
         return 'unknown', confidence
 
 ############################################
-# 加入每类 accuracy 计算（针对 7 类的统计）
+# Add per-class accuracy computation (for the 7 target classes)
 ############################################
 def run_predictions(data_dir):
     y_true = []
     y_pred = []
     records = []
 
-    # 仅针对目标 7 类统计
+    # Statistics only for the target 7 classes
     class_correct = {c: 0 for c in TARGET_7}
     class_total = {c: 0 for c in TARGET_7}
 
@@ -173,9 +174,10 @@ def run_predictions(data_dir):
         if not os.path.isdir(folder):
             continue
 
-        # 真实标签（小写）
+        # Ground-truth label (lowercase)
         true_label = cls.lower()
-        # 只处理我们关注的 7 类文件夹（如果数据集中包含其它类则跳过）
+
+        # Only process folders belonging to the target 7 classes
         if true_label not in TARGET_7:
             continue
 
@@ -195,11 +197,11 @@ def run_predictions(data_dir):
             if pred == true_label:
                 class_correct[true_label] += 1
 
-    # overall accuracy: 只计算目标 7 类样本（把 'unknown' 视为错误）
+    # Overall accuracy (only on the target 7 classes; 'unknown' counts as incorrect)
     acc = accuracy_score(y_true, y_pred) if y_true else 0.0
     df = pd.DataFrame(records, columns=["filename", "true", "pred", "confidence"])
 
-    ### 计算每类 accuracy（针对 7 类）
+    # Per-class accuracy for the target 7 classes
     class_acc = {
         c: (class_correct[c] / class_total[c] if class_total[c] > 0 else 0.0)
         for c in TARGET_7
@@ -208,25 +210,25 @@ def run_predictions(data_dir):
     return acc, class_acc, df
 
 ############################################
-# ---------- 主流程 ----------
+# ---------- Main Pipeline ----------
 ############################################
-print("🎯 开始 baseline 测试（雾化图）...")
+print("Starting baseline test (hazy images)...")
 baseline_acc, baseline_class_acc, baseline_df = run_predictions(TEST_DIR)
-print("📌 baseline accuracy:", baseline_acc)
+print("baseline accuracy:", baseline_acc)
 
-print("\n📌 baseline per-class accuracy:")
+print("\n baseline per-class accuracy:")
 for cls, acc in baseline_class_acc.items():
     print(f"  {cls}: {acc:.4f}")
 
-print("\n🎯 开始生成去雾数据集（MSR）...")
-# 修正：把 mode 设为 'msr' 或 'dcp'，不要用不存在的 'dsp'
-process_dataset(mode="msr")  # 或 process_dataset(mode="dcp")
+print("\n Generating dehazed dataset (MSR)...")
+# Note: set mode to 'msr' or 'dcp'; do not use invalid modes like 'dsp'
+process_dataset(mode="msr")  # or process_dataset(mode="dcp")
 
-print("🎯 开始 dehazed 测试...")
+print("Starting dehazed test...")
 dehaze_acc, dehaze_class_acc, dehaze_df = run_predictions(DEHAZED_DIR)
 
-print("\n📌 dehazed accuracy:", dehaze_acc)
-print("\n📌 dehazed per-class accuracy:")
+print("\n dehazed accuracy:", dehaze_acc)
+print("\n dehazed per-class accuracy:")
 for cls, acc in dehaze_class_acc.items():
     print(f"  {cls}: {acc:.4f}")
 
