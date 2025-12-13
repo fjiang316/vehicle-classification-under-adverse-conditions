@@ -107,7 +107,7 @@ def process_dataset(mode="dcp"):
 
             cv2.imwrite(os.path.join(dst_dir, fname), out)
 
-    print("✅ All dehazed images have been generated!\n")
+    print("All dehazed images have been generated!\n")
 
 ############################################
 # ---------- Model Loading ----------
