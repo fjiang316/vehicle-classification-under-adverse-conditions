@@ -1,0 +1,12 @@
+tensorflow
+keras
+opencv-python
+numpy
+matplotlib
+scikit-learn
+scipy
+pandas
+Pillow
+scikit-image
+kagglehub
+joblib
