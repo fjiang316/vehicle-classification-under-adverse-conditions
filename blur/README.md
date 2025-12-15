@@ -1,2 +1,11 @@
 # Execution Instruction Guide for Blurry Distortion Experiment
 All files in this folders are related to blurry condition (distortion) related experiment in this project. Please follow the guideline below if you want to run the code.
+
+## Files
+* download_db.ipynb: run this file to generate the normal image (non-distorted) dataset.
+* blur.ipynd: after generated the normal image dataset from previous files, run it through this file to get the blurred version that will be used for evaluation and fine-tuning.
+  * This file contains 2 ways to blur the image, the first one with pillow will create a more severely blurred image set, the second one with openCV will create a lightly blurred image set. For this project's blurry condition investigation, the severely blurred and lightly blurred set are produced using those two methods in this file.
+  * You can either follow those steps and execute those two files to get the dataset for blurry condition, or you can download it directly [here](https://drive.google.com/drive/folders/1_HFIxGZXljtEeeoz0aNk1-3tKQhdsXdH?usp=sharing) from the vehicle_dataset.zip within blurry folder. After you obtained the dataset, place it in the same folder with the other blur-related files to run the next steps.
+* image_processing.ipynb: This file contains functions that do the two blurry image processing (unsharp masking and blind deconvolution). Toward the end of the notebook, evaluation 1 is on baseline (test baseline model directly on blurry dataset), evaluation 2 is test the baseline after the blurry dataset is processed with unsharp masking (it will create a temporary dataset consists of all images after unsharp masking), and evaluation 3 is teat the baseline after blind deconvolution is applied on raw blurry data. There are a function toward the end and some example that allows you to apply the two image processing methods on a raw file and place the 3 versions side by side for visual comparison as well.
+  * Note: please change the path of the baseline model at the beginning of this file to the mobilenet2.h5 file at the outer folder.
+* finetune.ipynb: This file contains fine-tuning steps on the baseline. Continue on the baseline model, it did a 7:1.5:1.5 train/test/validation split on the raw blurry dataset and train 10 epochs on the train set. The accuracy on test set is evaluated toward the end.
