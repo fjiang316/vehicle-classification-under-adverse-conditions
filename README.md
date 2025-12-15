@@ -19,8 +19,11 @@ Vehicle classes: bicycle, boat, bus, car, helicopter, motorcycle, truck
 
 Distortions: Bad lighting condition, foggy condition, blurry condition
 
-Images are stored in class-specific folders for each type of distortion. Due to file size constraints, datasets are not included in the repository. They are available for download separately in this google drive link. 
-Please place your images following the directory structure above to run the code.
+Images are stored in class-specific folders for each type of distortion. Due to file size constraints, datasets are not included in the repository. They are available for download separately in those google drive link:
+* [Low-light dataset](https://drive.google.com/drive/u/0/folders/1m0AXwPMiRXJRXr7Ho5PGOJAOAmLyG743?q=sharedwith:public%20parent:1m0AXwPMiRXJRXr7Ho5PGOJAOAmLyG743)
+* [Foggy dataset](https://drive.google.com/file/d/1kGqC6a4gG2upr7aw-FOwlAgkAq5rsjfn/view?usp=sharing)
+* [Blurry dataset](https://drive.google.com/drive/folders/1MVzFhYq91adCOrwVLix0lWJHA2tPHj-w?usp=sharing)
+Please place your images following the instruction within README of each type of distortion's folder to run the code.
 
 ---
 # Setup Instructions
