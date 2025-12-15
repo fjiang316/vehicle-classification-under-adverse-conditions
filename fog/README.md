@@ -139,7 +139,7 @@ python run_foggy_final.py
 
 #### Output:
 
-* Enhanced images saved to `bad_light_enhanced/`
+* Enhanced images saved to `foggy_enhanced/`
 * CSV results:
 
   * `experiment1_baseline.csv`
@@ -181,7 +181,7 @@ mobilenet2_finetuned_foggy.h5
 
 ## 5. Experimental Purpose
 
-* **Low-light pipeline**: tests whether classical image enhancement (MSR, CLAHE, Gamma) improves inference accuracy
+* **run_foggy_final**: tests whether classical image enhancement (DCP, MSRCR) improves inference accuracy
 * **Foggy fine-tuning**: addresses domain shift by adapting CNN weights to fog-degraded inputs
 
 These two scripts support a **comparative study between preprocessing-based and learning-based robustness methods**.
